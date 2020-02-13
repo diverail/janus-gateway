@@ -110,7 +110,7 @@ static gboolean rmq_admin_api_enabled = FALSE;
 static gboolean notify_events = TRUE;
 
 /* FIXME: Should it be configurable? */
-#define JANUS_RABBITMQ_EXCHANGE_TYPE "fanout"
+#define JANUS_RABBITMQ_EXCHANGE_TYPE "direct"
 
 /* JSON serialization options */
 static size_t json_format = JSON_INDENT(3) | JSON_PRESERVE_ORDER;
@@ -414,7 +414,7 @@ int janus_rabbitmq_init(janus_transport_callbacks *callback, const char *config_
 		if(janus_exchange != NULL) {
 			JANUS_LOG(LOG_VERB, "Declaring exchange...\n");
 			rmq_client->janus_exchange = amqp_cstring_bytes(janus_exchange);
-			amqp_exchange_declare(rmq_client->rmq_conn, rmq_client->rmq_channel, rmq_client->janus_exchange, amqp_cstring_bytes(JANUS_RABBITMQ_EXCHANGE_TYPE), 0, 0, 0, 0, amqp_empty_table);
+			amqp_exchange_declare(rmq_client->rmq_conn, rmq_client->rmq_channel, rmq_client->janus_exchange, amqp_cstring_bytes(JANUS_RABBITMQ_EXCHANGE_TYPE), 0, 1, 0, 0, amqp_empty_table);
 			result = amqp_get_rpc_reply(rmq_client->rmq_conn);
 			if(result.reply_type != AMQP_RESPONSE_NORMAL) {
 				JANUS_LOG(LOG_FATAL, "Can't connect to RabbitMQ server: error diclaring exchange... %s, %s\n", amqp_error_string2(result.library_error), amqp_method_name(result.reply.id));
@@ -767,8 +767,14 @@ void *janus_rmq_out_thread(void *data) {
 			props._flags |= AMQP_BASIC_CONTENT_TYPE_FLAG;
 			props.content_type = amqp_cstring_bytes("application/json");
 			amqp_bytes_t message = amqp_cstring_bytes(payload_text);
+			/* read routing key */
+			char message_array[4096];
+			char *routing_key;
+			strcpy(message_array, payload_text);
+			routing_key=strtok(message_array,"@");
+			routing_key=strtok(NULL,"\"");
 			int status = amqp_basic_publish(rmq_client->rmq_conn, rmq_client->rmq_channel, rmq_client->janus_exchange,
-				response->admin ? rmq_client->from_janus_admin_queue : rmq_client->from_janus_queue,
+				response->admin ? rmq_client->from_janus_admin_queue : routing_key != NULL ? amqp_cstring_bytes(routing_key) : rmq_client->from_janus_queue,
 				0, 0, &props, message);
 			if(status != AMQP_STATUS_OK) {
 				JANUS_LOG(LOG_ERR, "Error publishing... %d, %s\n", status, amqp_error_string2(status));
