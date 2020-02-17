@@ -92,7 +92,7 @@ static void janus_rabbitmqevh_event_free(json_t *event) {
 static size_t json_format = JSON_INDENT(3) | JSON_PRESERVE_ORDER;
 
 /* FIXME: Should it be configurable? */
-#define JANUS_RABBITMQ_EXCHANGE_TYPE "fanout"
+#define JANUS_RABBITMQ_EXCHANGE_TYPE "direct"
 
 /* RabbitMQ session */
 static amqp_connection_state_t rmq_conn;
@@ -326,7 +326,7 @@ int janus_rabbitmqevh_init(const char *config_path) {
 	if(exchange != NULL) {
 		JANUS_LOG(LOG_VERB, "RabbitMQEventHandler: Declaring exchange...\n");
 		rmq_exchange = amqp_cstring_bytes(exchange);
-		amqp_exchange_declare(rmq_conn, rmq_channel, rmq_exchange, amqp_cstring_bytes(JANUS_RABBITMQ_EXCHANGE_TYPE), 0, 0, 0, 0, amqp_empty_table);
+		amqp_exchange_declare(rmq_conn, rmq_channel, rmq_exchange, amqp_cstring_bytes(JANUS_RABBITMQ_EXCHANGE_TYPE), 0, 1, 0, 0, amqp_empty_table);
 		result = amqp_get_rpc_reply(rmq_conn);
 		if(result.reply_type != AMQP_RESPONSE_NORMAL) {
 			JANUS_LOG(LOG_FATAL, "RabbitMQEventHandler: Can't connect to RabbitMQ server: error diclaring exchange... %s, %s\n", amqp_error_string2(result.library_error), amqp_method_name(result.reply.id));
