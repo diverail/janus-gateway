@@ -3,6 +3,168 @@
 All notable changes to this project will be documented in this file.
 
 
+## [v0.10.3] - 2020-07-09
+
+- Fixed occasional crashes in VideoRoom related to subscribers activity [[PR-2236](https://github.com/meetecho/janus-gateway/pull/2236)] [[PR-2253](https://github.com/meetecho/janus-gateway/pull/2253)]
+- Fixed AudioBridge compilation issues when libogg is missing (thanks @ffontaine!) [[PR-2238](https://github.com/meetecho/janus-gateway/pull/2238)]
+- Fixed broken SRTP forwarders in AudioBridge [[PR-2258](https://github.com/meetecho/janus-gateway/pull/2258)]
+- Fixed occasional segfaults due to race conditions in SIP plugin [[PR-2247](https://github.com/meetecho/janus-gateway/pull/2247)]
+- Fixed occasional recording issues in Janus and Duktape plugins
+- Added timeout (120s) on idle connections in HTTP transport
+- Fixed Opus recordings occasionally being way too large than the source file when processed via janus-pp-rec (thanks @neilkinnish!) [[PR-2250](https://github.com/meetecho/janus-gateway/pull/2250)]
+- Added a new web demo to use canvas elements as a media source for PeerConnections [[PR-2261](https://github.com/meetecho/janus-gateway/pull/2261)]
+- Other smaller fixes and improvements (thanks to all who contributed pull requests and reported issues!)
+
+
+## [v0.10.2] - 2020-06-17
+
+- Fixed sscanf-related security issues [[PR-2229](https://github.com/meetecho/janus-gateway/pull/2229)]
+- Fixed some RTP extensions not working after renegotiations [[Issue-2192](https://github.com/meetecho/janus-gateway/issues/2192)]
+- Fixed occasionally broken simulcast behaviour [[PR-2231](https://github.com/meetecho/janus-gateway/pull/2231)]
+- Fixed "switch" request not taking simulcast/SVC into account in VideoRoom and Streaming plugins [[Issue-2219](https://github.com/meetecho/janus-gateway/issues/2219)]
+- Fixed inability to ask for random ports when creating Streaming plugin mountpoints with simulcast support [[PR-2225](https://github.com/meetecho/janus-gateway/pull/2225)]
+- Fixed occasional crashes in SIP plugin when using helpers [[PR-2216](https://github.com/meetecho/janus-gateway/pull/2216)]
+- Updated Duktape dependencies to v2.5, and fixed Duktape plugin relaying text data as binary [[PR-2233](https://github.com/meetecho/janus-gateway/pull/2233)]
+- Other smaller fixes and improvements (thanks to all who contributed pull requests and reported issues!)
+
+
+## [v0.10.1] - 2020-06-11
+
+- Added initial support for AV1 and H.265 video codecs [[PR-2120](https://github.com/meetecho/janus-gateway/pull/2120)]
+- Added initial support for end-to-end encryption via Insertable Streams [[PR-2074](https://github.com/meetecho/janus-gateway/pull/2074)]
+- Fixed security issues when processing SDPs [[PR-2214](https://github.com/meetecho/janus-gateway/pull/2214)]
+- Fixed occasional codec profile negotiation issues (thanks @groupboard!) [[PR-2212](https://github.com/meetecho/janus-gateway/pull/2212)]
+- Fixed occasional segfaults when hanging up VideoRoom subscribers
+- Fixed RTSP issues when fmtp is missing (thanks @lionelnicolas!) [[PR-2190](https://github.com/meetecho/janus-gateway/pull/2190)]
+- Fixed RTSP not following redirects, when used (thanks @lionelnicolas!) [[PR-2195](https://github.com/meetecho/janus-gateway/pull/2195)]
+- Fixed SRTP-SDES and renegotiation issues in NoSIP plugin (thanks @ihusejnovic!) [[PR-2196](https://github.com/meetecho/janus-gateway/pull/2196)]
+- Other smaller fixes and improvements (thanks to all who contributed pull requests and reported issues!)
+
+
+## [v0.10.0] - 2020-06-01
+
+- Added support for negotiation of codec profiles (mainly VP9 and H.264) [[PR-2080](https://github.com/meetecho/janus-gateway/pull/2080)]
+- Added new callback to let plugins know when the datachannel first becomes available, and then any time it's writable (empty buffers) [[PR-2060](https://github.com/meetecho/janus-gateway/pull/2060)]
+- Added support for data channel subprotocols [[PR-2157](https://github.com/meetecho/janus-gateway/pull/2157)]
+- Added new event handler for GrayLog using GELF (thanks @mirkobrankovic!) [[PR-1788](https://github.com/meetecho/janus-gateway/pull/1788)]
+- Added per-user override of global room 'audio_active_packets' and 'audio_level_average' properties to AudioBridge and VideoRoom (thanks @mirkobrankovic!) [[PR-2158](https://github.com/meetecho/janus-gateway/pull/2158)]
+- Notify speaker that started/stopped talking too, when talking events are triggered in VideoRoom and AudioBridge (thanks @maxboehm!) [[PR-2172](https://github.com/meetecho/janus-gateway/pull/2172)]
+- Allow listing of private rooms/mountpoints if an admin_key is used (thanks @robby2016!) [[PR-2161](https://github.com/meetecho/janus-gateway/pull/2161)]
+- Fixed RTCP support not triggering PLIs for new simulcast mountpoint viewers [[Issue-2156](https://github.com/meetecho/janus-gateway/issues/2156)]
+- Fixed occasional issue binding multicast mountpoints (thanks @PaulKerr!) [[PR-2167](https://github.com/meetecho/janus-gateway/pull/2167)]
+- Fixed buffering of keyframes not working in Streaming plugin (thanks @TomFFF!) [[PR-2170](https://github.com/meetecho/janus-gateway/pull/2170)]
+- Added support for buffering of keyframes to RTSP mountpoints too (thanks @lionelnicolas!) [[PR-2180](https://github.com/meetecho/janus-gateway/pull/2180)]
+- Fixed renegotiation support in SIP plugin when audio/video is added (thanks @ihusejnovic!) [[PR-2164](https://github.com/meetecho/janus-gateway/pull/2164)] [[PR-2173](https://github.com/meetecho/janus-gateway/pull/2173)]
+- Fixed menus in html documentation when using Doxygen >= 1.8.14 (thanks @i8-pi!) [[PR-2155](https://github.com/meetecho/janus-gateway/pull/2155)]
+- Other smaller fixes and improvements (thanks to all who contributed pull requests and reported issues!)
+
+
+## [v0.9.5] - 2020-05-18
+
+- Fixed sessions not being cleaned up when disabling session timeouts and the transport disconnects (thanks @nicolasduteil!) [[PR-2143](https://github.com/meetecho/janus-gateway/pull/2143)]
+- Added option to keep candidates with private host addresses when using nat-1-1, and advertize them too instead of just replacing them
+- Added auth token, if available, to 'attached' event (handlers) and to Admin API (handle_info)
+- Added new API to start/stop recording a VideoRoom as a whole, and a new option to prevent participants from starting/stopping their own recording (thanks @wheresjames!) [[PR-2137](https://github.com/meetecho/janus-gateway/pull/2137)]
+- Fixed rare deadlock when wrapping up Streaming plugin mountpoints [[PR-2141](https://github.com/meetecho/janus-gateway/pull/2141)]
+- Fixed rare deadlock when destroying AudioBridge rooms
+- Added synchronous request to check if an announcement is playing in the AudioBridge
+- Fixed AudioBridge announcement not waking up sleeping forwarder
+- Added global room mute/unmute support to AudioBridge
+- Added configurable DSCP support for outgoing RTP packets to SIP and NoSIP plugins (thanks @GerardM22!) [[PR-2150](https://github.com/meetecho/janus-gateway/pull/2150)]
+- Added support for RTP extensions (audio-level, video-orientation) to NoSIP plugin [[Issue-2152](https://github.com/meetecho/janus-gateway/issues/2152)]
+- Added option to configure ciphers suite for secure WebSockets (thanks @agclark81!) [[PR-2135](https://github.com/meetecho/janus-gateway/pull/2135)]
+- Added timer to janus.js to avoid spamming onmute/onunmute events and flashing videos [[PR-2147](https://github.com/meetecho/janus-gateway/pull/2147)]
+- Added a new tool to convert .pcap captures to .mjr recordings [[PR-2144](https://github.com/meetecho/janus-gateway/pull/2144)]
+- Other smaller fixes and improvements (thanks to all who contributed pull requests and reported issues!)
+
+
+## [v0.9.4] - 2020-05-04
+
+- Updated code not to wait forever for local candidates when half-trickling and sending an SDP out
+- Fixed occasional CPU spiking issues when dealing with ICE failures (thanks @sjkummer!)
+- Fixed occasional stall when gathering ICE candidates (thanks @wheresjames!)
+- Fixed the incorrect value being set via DSCP, when configured
+- Fixed occasional race condition when hanging up VideoRoom subscribers
+- Fixed Audiobridge and Streaming plugins not playing the last chunk of .opus files (thanks @RSATom!)
+- Fixed duplicate subscriptions (and SRTP/SRTCP errors) on multiple watch requests in Streaming plugin
+- Updated Streaming and TextRoom plugins to stop using legacy datachannel negotiation
+- Fixed occasional crash in HTTP transport when dealing with unknown requests
+- Fixed occasional disconnect in WebSockets (thanks @tomnotcat!)
+- Made RabbitMQ exchange type configurable in both transport and event handler (thanks @voicenter!)
+- Other smaller fixes and improvements (thanks to all who contributed pull requests and reported issues!)
+
+
+## [v0.9.3] - 2020-04-22
+
+- Change libsrtp detection in the configure script to use pkg-config
+- Fixed compilation error with gcc10
+- Fixed RTCP issue that could occasionally lead to broken retransmissions when using rtx
+- Added option to specify DSCP Type of Service (ToS) for media streams
+- Fixed a couple of race conditions during renegotiations
+- Fixed VideoRoom and Streaming "destroy" not working properly when using string IDs
+- Fix occasional segfault in VideoRoom (thanks @cb22!)
+- Fixed AudioBridge "create" not working properly when using string IDs
+- Added support for playing Opus files in AudioBridge rooms
+- Added support to Opus files for file-based mountpoints in Streaming plugin
+- Added support for generic metadata to Streaming mountpoints
+- Streaming plugin now returns mountpoint IP address(es) in "create" and "info", when binding to specific IP/interface
+- Fixed occasional segfault when using helper threads in Streaming plugin
+- Fixed occasional race conditions in HTTP transport
+- Added support for specifying screensharing framerate in janus.js (thanks @agclark81!)
+- Cleaned up code in janus.js (thanks @alienpavlov!)
+- Other smaller fixes and improvements (thanks to all who contributed pull requests and reported issues!)
+
+
+## [v0.9.2] - 2020-03-26
+
+- Converted HTTP transport plugin to single thread (now requires libmicrohttpd >= 0.9.59)
+- Fixed .deb file packaging (thanks @FThrum!)
+- Added foundation for aiortc-based functional testing (python)
+- Fixed occasional audio/video desync
+- Added asynchronous resolution of mDNS candidates, and an option to automatically ignore them entirely
+- Updated default DTLS ciphers (thanks @fippo!)
+- Added option to generate ECDSA certificates at startup, instead of RSA (thanks @Sean-Der!)
+- Fixed rare race condition when claiming sessions
+- Fixed rare crash in ice.c (thanks @tmatth!)
+- Fixed dangerous typo in querylogger_parameters (copy/paste error)
+- Fixed occasional deadlocks in VideoRoom (thanks @mivuDing and @agclark81!)
+- Added support for RTSP Content-Base header to Streaming plugin
+- Fixed double unlock when listing private rooms in AudioBridge
+- Made AudioBridge prebuffering property configurable, both per-room and per-participant
+- Added G.711 support to AudioBridge (both participants and RTP forwarders)
+- Added called URI to 'incomingcall' and 'missed_call' events in SIP plugin (in case the registered user is associated with multiple public URIs)
+- Fixed race conditions and leaks in VideoCall and VoiceMail plugins
+- Other smaller fixes and improvements (thanks to all who contributed pull requests and reported issues!)
+
+
+## [v0.9.1] - 2020-03-10
+
+- Added configurable global prefix for log lines
+- Implemented better management of remote candidates with invalid addresses
+- Added subtype property to differentiate some macro-types in event handlers
+- Improved detection of H.264 keyframes (thanks @cameronlucas3!)
+- Added configurable support for strings as unique IDs in AudioBridge, VideoRoom, TextRoom and Streaming plugins
+- Fixed small memory leak when creating Streaming mountpoints dynamically
+- Fixed segfault when trying to start a SIP call with a non-existing refer_id (thanks @tmatth!)
+- Fixed errors negotiating video in SIP plugin when multiple video profiles are provided
+- Updated SIP plugin transfer code to answer with a 202 right away, instead of sending a 100 first (which won't work with proxies)
+- Added several features and fixes several nits in SIP demo UI
+- Fixed janus.js error callback not being invoked when an HTTP error happens trying to attach to a plugin (thanks @hxl-dy!)
+- Other smaller fixes and improvements (thanks to all who contributed pull requests and reported issues!)
+
+
+## [v0.9.0] - 2020-02-21
+
+- Refactored core-plugin callbacks
+- Added RTP extensions termination
+- Removed requirement to enable ICE Lite to use ICE-TCP, even though it may cause issues (thanks @sjkummer!)
+- Added support for transport-wide CC on outgoing streams (feedback still unused, though)
+- Dynamically update NACK queue size depending on RTT
+- Fixed risk of RTP header memory misalignment when dealing with rtx packets
+- Users muted in AudioBridge by an admin are now notified as well (thanks @klanjabrik!)
+- Other smaller fixes and improvements (thanks to all who contributed pull requests and reported issues!)
+
+
 ## [v0.8.2] - 2020-02-04
 
 - Added Travis CI integration (thanks @fippo for kickstarting it!)
