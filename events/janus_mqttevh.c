@@ -379,6 +379,15 @@ static int janus_mqttevh_client_connect(janus_mqttevh_context *ctx) {
 	options.keepAliveInterval = ctx->connect.keep_alive_interval;
 	options.maxInflight = ctx->connect.max_inflight;
 
+	MQTTAsync_SSLOptions ssl_opts = MQTTAsync_SSLOptions_initializer;
+	if(ctx->tls.enable) {
+		ssl_opts.trustStore = ctx->tls.cacert_file;
+		ssl_opts.keyStore = ctx->tls.cert_file;
+		ssl_opts.privateKey = ctx->tls.key_file;
+		ssl_opts.enableServerCertAuth = ctx->tls.verify_peer;
+		options.ssl = &ssl_opts;
+	}
+
 	MQTTAsync_willOptions willOptions = MQTTAsync_willOptions_initializer;
 	if(ctx->will.enabled) {
 		willOptions.topicName = ctx->will.topic;
@@ -535,10 +544,14 @@ static int janus_mqttevh_client_publish_message(janus_mqttevh_context *ctx, cons
 	options.onFailure = janus_mqttevh_client_publish_message_failure;
 
 	rc = MQTTAsync_sendMessage(ctx->client, topic, &msg, &options);
-	if(rc == MQTTASYNC_SUCCESS) {
-		JANUS_LOG(LOG_HUGE, "MQTT EVH message sent to topic %s on %s. Result %d\n", topic, ctx->connect.url, rc);
-	} else {
-		JANUS_LOG(LOG_WARN, "FAILURE: MQTT EVH message propably not sent to topic %s on %s. Result %d\n", topic, ctx->connect.url, rc);
+	switch(rc) {
+		case MQTTASYNC_SUCCESS:
+			JANUS_LOG(LOG_HUGE, "MQTT EVH message sent to topic %s on %s. Result %d\n", topic, ctx->connect.url, rc);
+			break;
+		case MQTTASYNC_OPERATION_INCOMPLETE:
+			break;
+		default:
+			JANUS_LOG(LOG_WARN, "FAILURE: MQTT EVH message propably not sent to topic %s on %s. Result %d\n", topic, ctx->connect.url, rc);
 	}
 
 	return rc;
@@ -559,12 +572,16 @@ static int janus_mqttevh_client_publish_message5(janus_mqttevh_context *ctx, con
 	options.context = ctx;
 	options.onSuccess5 = janus_mqttevh_client_publish_message_success5;
 	options.onFailure5 = janus_mqttevh_client_publish_message_failure5;
-	
+
 	rc = MQTTAsync_sendMessage(ctx->client, topic, &msg, &options);
-	if(rc == MQTTASYNC_SUCCESS) {
-		JANUS_LOG(LOG_HUGE, "MQTT EVH message sent to topic %s on %s. Result %d\n", topic, ctx->connect.url, rc);
-	} else {
-		JANUS_LOG(LOG_WARN, "FAILURE: MQTT EVH message propably not sent to topic %s on %s. Result %d\n", topic, ctx->connect.url, rc);
+	switch(rc) {
+		case MQTTASYNC_SUCCESS:
+			JANUS_LOG(LOG_HUGE, "MQTT EVH message sent to topic %s on %s. Result %d\n", topic, ctx->connect.url, rc);
+			break;
+		case MQTTASYNC_OPERATION_INCOMPLETE:
+			break;
+		default:
+			JANUS_LOG(LOG_WARN, "FAILURE: MQTT EVH message propably not sent to topic %s on %s. Result %d\n", topic, ctx->connect.url, rc);
 	}
 
 	return rc;
@@ -604,7 +621,12 @@ static void janus_mqttevh_client_publish_message_failure5(void *context, MQTTAsy
 
 static void janus_mqttevh_client_publish_message_failure_impl(void *context, int rc) {
 	janus_mqttevh_context *ctx = (janus_mqttevh_context *)context;
-	JANUS_LOG(LOG_ERR, "MQTT EVH client has failed publishing to MQTT topic: %s, return code: %d\n", ctx->publish.topic, rc);
+	switch(rc) {
+		case MQTTASYNC_OPERATION_INCOMPLETE:
+			break;
+		default:
+			JANUS_LOG(LOG_ERR, "MQTT EVH client has failed publishing to MQTT topic: %s, return code: %d\n", ctx->publish.topic, rc);
+	}
 }
 
 /* Destroy Janus MQTT event handler session context */
@@ -907,7 +929,7 @@ static int janus_mqttevh_init(const char *config_path) {
 			item = janus_config_get(config, config_general, janus_config_type_item, "ssl_cacert");
 		}
 		if(item && item->value) {
-			ctx->tls.cacert_file = g_strdup(item->value);
+			ctx->tls.cacert_file = janus_make_absolute_path(config_path, item->value);
 		}
 
 		item = janus_config_get(config, config_general, janus_config_type_item, "tls_client_cert");
@@ -915,14 +937,14 @@ static int janus_mqttevh_init(const char *config_path) {
 			item = janus_config_get(config, config_general, janus_config_type_item, "ssl_client_cert");
 		}
 		if(item && item->value) {
-			ctx->tls.cert_file = g_strdup(item->value);
+			ctx->tls.cert_file = janus_make_absolute_path(config_path, item->value);
 		}
 		item = janus_config_get(config, config_general, janus_config_type_item, "tls_client_key");
 		if(!item) {
 			item = janus_config_get(config, config_general, janus_config_type_item, "ssl_client_key");
 		}
 		if(item && item->value) {
-			ctx->tls.key_file = g_strdup(item->value);
+			ctx->tls.key_file = janus_make_absolute_path(config_path, item->value);
 		}
 		item = janus_config_get(config, config_general, janus_config_type_item, "tls_verify_peer");
 		if(!item) {
@@ -942,7 +964,7 @@ static int janus_mqttevh_init(const char *config_path) {
 
 #ifdef MQTTVERSION_5
 	if (ctx->connect.mqtt_version == MQTTVERSION_5) {
-		/* MQTT 5 specific configuration */	
+		/* MQTT 5 specific configuration */
 		janus_config_array *add_user_properties_array = janus_config_get(config, config_general, janus_config_type_array, "add_user_properties");
 		if(add_user_properties_array) {
 			GList *add_user_properties_array_items = janus_config_get_arrays(config, add_user_properties_array);
@@ -983,6 +1005,7 @@ static int janus_mqttevh_init(const char *config_path) {
 
 	create_options.maxBufferedMessages = ctx->connect.max_buffered;
 
+	create_options.sendWhileDisconnected = TRUE;
 	res = MQTTAsync_createWithOptions(
 		&ctx->client,
 		ctx->connect.url,
@@ -1158,6 +1181,7 @@ static void *janus_mqttevh_handler(void *data) {
 	janus_mqttevh_context *ctx = (janus_mqttevh_context *)data;
 	json_t *event = NULL;
 	char topicbuf[512];
+	topicbuf[0] = '\0';
 
 	JANUS_LOG(LOG_VERB, "Joining MqttEventHandler handler thread\n");
 
@@ -1189,7 +1213,7 @@ static void *janus_mqttevh_handler(void *data) {
 		if(!g_atomic_int_get(&stopping)) {
 			/* Convert event to string */
 			if(ctx->addevent) {
-				snprintf(topicbuf, sizeof(topicbuf), "%s/%s", ctx->publish.topic, janus_events_type_to_label(type));
+				g_snprintf(topicbuf, sizeof(topicbuf), "%s/%s", ctx->publish.topic, janus_events_type_to_label(type));
 				JANUS_LOG(LOG_DBG, "Debug: MQTT Publish event on %s\n", topicbuf);
 				janus_mqttevh_send_message(ctx, topicbuf, event);
 			} else {
@@ -1215,7 +1239,8 @@ int janus_mqttevh_client_get_response_code5(MQTTAsync_failureData5 *response) {
 void janus_mqttevh_add_properties(GArray *user_properties, MQTTProperties *properties) {
 	if(user_properties == NULL || user_properties->len == 0) return;
 
-	for(uint i = 0; i < user_properties->len; i++) {
+	uint i = 0;
+	for(i = 0; i < user_properties->len; i++) {
 		MQTTProperty *property = &g_array_index(user_properties, MQTTProperty, i);
 		int rc = MQTTProperties_add(properties, property);
 		if(rc != 0) {

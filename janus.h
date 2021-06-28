@@ -53,7 +53,9 @@ typedef struct janus_session {
 	/*! \brief Pointer to the request instance (and the transport that originated the session) */
 	janus_request *source;
 	/*! \brief Flag to notify there's been a session timeout */
-	volatile gint timeout;
+	volatile gint timedout;
+	/*! \brief Timeout value in seconds to use with this session, 0 is unlimited, -1 is global session timeout setting */
+	gint timeout;
 	/*! \brief Flag to notify that transport is gone */
 	volatile gint transport_gone;
 	/*! \brief Mutex to lock/unlock this session */
@@ -277,6 +279,11 @@ gchar *janus_get_public_ip(guint index);
 guint janus_get_public_ip_count(void);
 /*! \brief Helper method to add an IP address to use in the SDP */
 void janus_add_public_ip(const char *ip);
+/*! \brief Helper method to check if we have at least one manually passed public IPv4 address (for 1-1 NAT management) */
+gboolean janus_has_public_ipv4_ip(void);
+/*! \brief Helper method to check if we have at least one manually passed public IPv6 address (for 1-1 NAT management) */
+gboolean janus_has_public_ipv6_ip(void);
+
 /*! \brief Helper method to check whether the server is being shut down */
 gint janus_is_stopping(void);
 
